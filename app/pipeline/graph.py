@@ -13,12 +13,12 @@ from langgraph.graph import StateGraph, END
 from groq import Groq
 from app.models import Transaction
 from app.pipeline.parsers.utils import normalize_date, clean_amount
-from app.pipeline.parsers import hdfc, icici, sbi, axis, kotak, pnb
+from app.pipeline.parsers import hdfc, icici, sbi, axis, kotak, pnb, bob
 
 
 class PipelineState(TypedDict):
     pdf_path: str
-    bank_type: Optional[str]  # "hdfc", "icici", "sbi", "axis", "kotak", "pnb", or None
+    bank_type: Optional[str]  # "hdfc", "icici", "sbi", "axis", "kotak", "pnb", "bob", or None
     transactions: list[Transaction]
     error: Optional[str]
 
@@ -31,6 +31,7 @@ BANK_KEYWORDS = {
     "axis": ["axis bank", "axis", "transaction details", "chq/ref number"],
     "kotak": ["kotak mahindra bank", "kotak bank", "kotak", "811"],
     "pnb": ["punjab national bank", "pnb"],
+    "bob": ["bank of baroda", "bob", "baroda"],
 }
 
 
@@ -78,6 +79,8 @@ def deterministic_extract(state: PipelineState) -> PipelineState:
             transactions = kotak.parse(pdf_path)
         elif bank_type == "pnb":
             transactions = pnb.parse(pdf_path)
+        elif bank_type == "bob":
+            transactions = bob.parse(pdf_path)
         else:
             transactions = []
 
