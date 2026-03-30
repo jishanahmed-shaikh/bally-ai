@@ -71,6 +71,22 @@ def health_check():
     return {"status": "ok", "version": "1.0.0"}
 
 
+@app.get("/banks")
+def list_supported_banks():
+    """List all banks supported by the deterministic parser."""
+    return {
+        "deterministic": [
+            {"id": "hdfc", "name": "HDFC Bank"},
+            {"id": "icici", "name": "ICICI Bank"},
+            {"id": "sbi", "name": "State Bank of India"},
+            {"id": "axis", "name": "Axis Bank"},
+            {"id": "kotak", "name": "Kotak Mahindra Bank"},
+            {"id": "pnb", "name": "Punjab National Bank"},
+        ],
+        "fallback": "All other banks are processed via Groq LLM fallback extraction.",
+    }
+
+
 @app.get("/jobs")
 def list_jobs():
     """List all processing jobs with their current status."""
