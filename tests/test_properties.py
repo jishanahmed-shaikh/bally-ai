@@ -62,3 +62,71 @@ def test_negative_deposit_always_rejected(amount):
             deposit=amount,
             closing_balance=Decimal("0.00"),
         )
+
+
+# --- Property 10: Voucher type is determined correctly by transaction amounts ---
+# Validates: Requirements 8.2, 8.3, 8.4
+import xml.etree.ElementTree as ET
+from app.xml_generator import generate_tally_xml, parse_tally_xml, generate_tally_xml_from_vouchers
+
+
+@given(
+    withdrawal=st.decimals(min_value=Decimal("0.01"), max_value=Decimal("99999.99"), allow_nan=False, allow_infinity=False).map(lambda x: x.quantize(Decimal("0.01"))),
+)
+@settings(max_examples=100)
+def test_payment_voucher_type_selection(withdrawal):
+    """Property 10: withdrawal>0, deposit==0 → Payment voucher."""
+    t = Transaction(date="20240101", narration="Test", withdrawal=withdrawal, deposit=Decimal("0.00"), closing_balance=Decimal("1000.00"), assigned_ledger="Expenses")
+    xml_str = generate_tally_xml([t], "HDFC Bank")
+    root = ET.fromstring(xml_str)
+    voucher = root.find(".//VOUCHER")
+    assert voucher is not None
+    assert voucher.get("VCHTYPE") == "Payment"
+
+
+@given(
+    deposit=st.decimals(min_value=Decimal("0.01"), max_value=Decimal("99999.99"), allow_nan=False, allow_infinity=False).map(lambda x: x.quantize(Decimal("0.01"))),
+)
+@settings(max_examples=100)
+def test_receipt_voucher_type_selection(deposit):
+    """Property 10: deposit>0, withdrawal==0 → Receipt voucher."""
+    t = Transaction(date="20240101", narration="Test", withdrawal=Decimal("0.00"), deposit=deposit, closing_balance=Decimal("1000.00"), assigned_ledger="Sales")
+    xml_str = generate_tally_xml([t], "HDFC Bank")
+    root = ET.fromstring(xml_str)
+    voucher = root.find(".//VOUCHER")
+    assert voucher is not None
+    assert voucher.get("VCHTYPE") == "Receipt"
+
+
+@given(transactions=st.lists(transaction_strategy(require_ledger=True), min_size=1, max_size=10))
+@settings(max_examples=100)
+def test_xml_hierarchy_property(transactions):
+    """Property 11: Generated XML conforms to Tally TDL hierarchy."""
+    xml_str = generate_tally_xml(transactions, "HDFC Bank")
+    root = ET.fromstring(xml_str)
+    assert root.tag == "ENVELOPE"
+    body = root.find("BODY")
+    assert body is not None
+    importdata = body.find("IMPORTDATA")
+    assert importdata is not None
+    requestdata = importdata.find("REQUESTDATA")
+    assert requestdata is not None
+    tallymessages = requestdata.findall("TALLYMESSAGE")
+    assert len(tallymessages) == len(transactions)
+
+
+@given(transactions=st.lists(transaction_strategy(require_ledger=True), min_size=1, max_size=5))
+@settings(max_examples=50)
+def test_xml_roundtrip(transactions):
+    """Property 12: XML generation round-trip."""
+    xml_str = generate_tally_xml(transactions, "HDFC Bank")
+    reparsed = parse_tally_xml(xml_str)
+    regenerated = generate_tally_xml_from_vouchers(reparsed, "HDFC Bank")
+    reparsed2 = parse_tally_xml(regenerated)
+    # Verify same number of vouchers and same types
+    assert len(reparsed) == len(reparsed2)
+    for v1, v2 in zip(reparsed, reparsed2):
+        assert v1.voucher_type == v2.voucher_type
+        assert v1.amount == v2.amount
+        assert v1.debit_ledger == v2.debit_ledger
+        assert v1.credit_ledger == v2.credit_ledger
