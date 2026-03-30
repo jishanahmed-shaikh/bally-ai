@@ -6,7 +6,7 @@ Convert Indian bank statement PDFs into Tally ERP 9 / Tally Prime-compatible XML
 
 Upload a PDF bank statement, review AI-suggested ledger assignments, and download a ready-to-import Tally XML file. The pipeline extracts transactions using deterministic parsers for known banks and falls back to an LLM for unrecognised formats.
 
-**Supported banks (deterministic):** HDFC, ICICI, SBI
+**Supported banks (deterministic):** HDFC, ICICI, SBI, Axis Bank, Kotak Mahindra Bank, Punjab National Bank
 **Other banks:** handled via LLM fallback (Groq Llama 4 Scout)
 
 ## Tech stack
@@ -57,6 +57,18 @@ streamlit run frontend/app.py
 ```
 
 The API will be available at `http://localhost:8000` and the UI at `http://localhost:8501`.
+
+## Running with Docker
+
+```bash
+# Build and start both services
+docker-compose up --build
+
+# Stop
+docker-compose down
+```
+
+The API will be at `http://localhost:8000` and the UI at `http://localhost:8501`.
 
 ## Usage flow
 
