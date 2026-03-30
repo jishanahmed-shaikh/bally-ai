@@ -71,6 +71,25 @@ def health_check():
     return {"status": "ok", "version": "1.0.0"}
 
 
+@app.get("/jobs")
+def list_jobs():
+    """List all processing jobs with their current status."""
+    return {
+        "total": len(jobs),
+        "jobs": [
+            {
+                "job_id": str(job.job_id),
+                "status": job.status,
+                "transaction_count": len(job.transactions),
+                "created_at": job.created_at.isoformat(),
+                "bank_ledger_name": job.bank_ledger_name,
+                "error_detail": job.error_detail,
+            }
+            for job in jobs.values()
+        ],
+    }
+
+
 @app.post("/upload", status_code=202)
 async def upload_pdf(file: UploadFile = File(...)) -> UploadResponse:
     """Upload and validate a bank statement PDF."""
