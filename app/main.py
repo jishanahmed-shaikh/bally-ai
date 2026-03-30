@@ -290,3 +290,13 @@ def export_tally_xml(job_id: str):
             "Content-Disposition": f"attachment; filename=tally_import_{job_id[:8]}.xml"
         }
     )
+
+
+@app.delete("/jobs/{job_id}", status_code=204)
+def delete_job(job_id: str):
+    """Delete a job and its associated PDF from the in-memory store."""
+    if job_id not in jobs:
+        raise HTTPException(status_code=404, detail=f"Job '{job_id}' not found.")
+    jobs.pop(job_id, None)
+    _pdf_store.pop(job_id, None)
+    return None
