@@ -130,3 +130,47 @@ def test_xml_roundtrip(transactions):
         assert v1.amount == v2.amount
         assert v1.debit_ledger == v2.debit_ledger
         assert v1.credit_ledger == v2.credit_ledger
+
+
+# --- Property 4: Date normalization is consistent ---
+# Validates: Requirements 2.3
+import re
+import datetime as dt_module
+from app.pipeline.parsers.utils import normalize_date, clean_amount
+
+
+@given(date=st.dates(min_value=dt_module.date(2000, 1, 1), max_value=dt_module.date(2030, 12, 31)))
+@settings(max_examples=100)
+def test_date_normalization_dd_mm_yyyy(date):
+    """Property 4: DD/MM/YYYY input normalizes to valid YYYYMMDD."""
+    input_str = date.strftime("%d/%m/%Y")
+    result = normalize_date(input_str)
+    assert result is not None
+    assert len(result) == 8
+    assert re.match(r"^\d{8}$", result)
+    assert result == date.strftime("%Y%m%d")
+
+
+@given(date=st.dates(min_value=dt_module.date(2000, 1, 1), max_value=dt_module.date(2030, 12, 31)))
+@settings(max_examples=100)
+def test_date_normalization_dd_mon_yyyy(date):
+    """Property 4: DD Mon YYYY input normalizes to valid YYYYMMDD."""
+    input_str = date.strftime("%d %b %Y")
+    result = normalize_date(input_str)
+    assert result is not None
+    assert result == date.strftime("%Y%m%d")
+
+
+# --- Property 5: Numeric field cleaning preserves value ---
+# Validates: Requirements 2.4
+
+@given(
+    value=st.decimals(min_value=Decimal("0.00"), max_value=Decimal("9999999.99"), allow_nan=False, allow_infinity=False).map(lambda x: x.quantize(Decimal("0.01")))
+)
+@settings(max_examples=100)
+def test_numeric_cleaning_preserves_value(value):
+    """Property 5: formatting with commas/symbols and cleaning returns original value."""
+    # Format with Indian number system commas
+    formatted = f"₹{value:,}"
+    result = clean_amount(formatted)
+    assert result == value
