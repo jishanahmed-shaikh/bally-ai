@@ -2,6 +2,7 @@
 Property-based tests using Hypothesis.
 Each test references the design property it validates.
 """
+import json
 import pytest
 from decimal import Decimal
 from hypothesis import given, settings, assume
@@ -215,3 +216,30 @@ def test_extracted_transactions_have_required_fields(transactions):
         assert t.withdrawal >= Decimal("0.00")
         assert t.deposit >= Decimal("0.00")
         assert t.closing_balance >= Decimal("0.00")
+
+
+# --- Property 8: Classification populates all ledger assignments ---
+# Validates: Requirements 6.1
+from unittest.mock import patch, MagicMock
+from app.classifier import classify_transactions
+
+@given(transactions=st.lists(transaction_strategy(require_ledger=False), min_size=1, max_size=10))
+@settings(max_examples=50)
+def test_classification_populates_all_ledgers(transactions):
+    """Property 8: after classification, every transaction has a non-empty assigned_ledger."""
+    # Mock the Groq client to return a valid classification response
+    mock_response = MagicMock()
+    mock_response.choices[0].message.content = json.dumps([
+        {"index": i, "ledger": "Miscellaneous Expenses"}
+        for i in range(len(transactions))
+    ])
+
+    mock_client = MagicMock()
+    mock_client.chat.completions.create.return_value = mock_response
+
+    with patch("app.classifier.Groq", return_value=mock_client):
+        result = classify_transactions(list(transactions))
+
+    for t in result:
+        assert t.assigned_ledger is not None
+        assert t.assigned_ledger.strip() != ""
