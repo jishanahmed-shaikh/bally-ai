@@ -22,6 +22,30 @@ st.set_page_config(
 st.title("🏦 Bank Statement → Tally XML Converter")
 st.caption("Upload your HDFC, ICICI, or SBI bank statement PDF and get a Tally-compatible XML file.")
 
+
+@st.cache_data(ttl=300)
+def fetch_ledgers() -> list[str]:
+    """Fetch the canonical ledger list from the API (cached for 5 minutes)."""
+    try:
+        resp = requests.get(f"{API_BASE}/ledgers", timeout=5)
+        if resp.status_code == 200:
+            return resp.json().get("ledgers", [])
+    except Exception:
+        pass
+    return []
+
+
+@st.cache_data(ttl=300)
+def fetch_supported_banks() -> list[dict]:
+    """Fetch supported banks from the API (cached for 5 minutes)."""
+    try:
+        resp = requests.get(f"{API_BASE}/banks", timeout=5)
+        if resp.status_code == 200:
+            return resp.json().get("deterministic", [])
+    except Exception:
+        pass
+    return []
+
 # --- Session state initialization ---
 if "job_id" not in st.session_state:
     st.session_state.job_id = None
@@ -45,7 +69,7 @@ bank_ledger_name = st.text_input(
 uploaded_file = st.file_uploader(
     "Choose a bank statement PDF",
     type=["pdf"],
-    help="Supported banks: HDFC, ICICI, SBI. Other formats will be processed using AI."
+    help="Supported banks: HDFC, ICICI, SBI, Axis, Kotak, PNB, BOB. Other formats will be processed using AI."
 )
 
 if uploaded_file and not st.session_state.processing_done:
