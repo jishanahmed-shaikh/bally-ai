@@ -38,8 +38,8 @@ ArchitecturesInstallIn64BitMode=x64
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
-Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription: "Additional icons:"; Flags: checked
-Name: "startupicon"; Description: "Launch Bally AI when Windows starts"; GroupDescription: "Additional icons:"; Flags: unchecked
+Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription: "Additional icons:"
+Name: "startupicon"; Description: "Launch Bally AI when Windows starts"; GroupDescription: "Additional icons:"
 
 [Files]
 ; Main application bundle from PyInstaller
