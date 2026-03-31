@@ -30,6 +30,9 @@ uploads/
 htmlcov/
 .coverage
 
+# Kiro IDE spec files
+.kiro/
+
 # OS
 .DS_Store
 Thumbs.db
