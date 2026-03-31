@@ -8,43 +8,7 @@ import json
 import os
 from groq import Groq
 from app.models import Transaction
-
-# Common Tally ledger names used as context for the LLM
-TALLY_LEDGERS = [
-    "Sales",
-    "Purchases",
-    "Bank Charges",
-    "Interest Income",
-    "Interest Expense",
-    "Salary",
-    "Rent",
-    "Electricity Charges",
-    "Telephone Charges",
-    "Internet Charges",
-    "Office Expenses",
-    "Travelling Expenses",
-    "Conveyance",
-    "Meals & Entertainment",
-    "Printing & Stationery",
-    "Repairs & Maintenance",
-    "Professional Fees",
-    "Audit Fees",
-    "Advertisement",
-    "Insurance",
-    "Taxes & Duties",
-    "GST Payable",
-    "TDS Payable",
-    "Cash",
-    "Petty Cash",
-    "Loan Account",
-    "Capital Account",
-    "Drawings",
-    "Miscellaneous Expenses",
-    "Sundry Debtors",
-    "Sundry Creditors",
-]
-
-LEDGER_LIST_STR = "\n".join(f"- {l}" for l in TALLY_LEDGERS)
+from app.utils.tally_ledgers import TALLY_LEDGERS, LEDGER_LIST_STR
 
 
 def classify_transactions(transactions: list[Transaction]) -> list[Transaction]:
