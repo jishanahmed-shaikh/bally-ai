@@ -56,7 +56,7 @@ Return ONLY the JSON array, no other text."""
                 model="meta-llama/llama-4-scout-17b-16e-instruct",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.1,
-                max_completion_tokens=1024,
+                max_tokens=1024,
                 top_p=1,
                 stream=False,
             )

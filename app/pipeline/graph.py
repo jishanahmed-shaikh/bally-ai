@@ -133,7 +133,7 @@ Bank statement text:
             model="meta-llama/llama-4-scout-17b-16e-instruct",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.1,
-            max_completion_tokens=4096,
+            max_tokens=4096,
             top_p=1,
             stream=False,
         )
