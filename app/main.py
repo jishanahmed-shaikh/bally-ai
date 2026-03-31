@@ -25,6 +25,7 @@ from app.pipeline.graph import run_pipeline
 from app.classifier import classify_transactions
 from app.xml_generator import generate_tally_xml
 from app.config import get_config, ConfigurationError
+from app.utils.tally_ledgers import get_ledger_list
 
 # In-memory job store
 jobs: dict[str, ProcessingJob] = {}
@@ -82,9 +83,16 @@ def list_supported_banks():
             {"id": "axis", "name": "Axis Bank"},
             {"id": "kotak", "name": "Kotak Mahindra Bank"},
             {"id": "pnb", "name": "Punjab National Bank"},
+            {"id": "bob", "name": "Bank of Baroda"},
         ],
         "fallback": "All other banks are processed via Groq LLM fallback extraction.",
     }
+
+
+@app.get("/ledgers")
+def list_ledgers():
+    """Return the canonical list of Tally ledger names available for assignment."""
+    return {"ledgers": get_ledger_list()}
 
 
 @app.get("/jobs")
