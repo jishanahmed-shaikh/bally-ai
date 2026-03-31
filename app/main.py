@@ -54,7 +54,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Bank Statement Tally Converter",
     description="Convert Indian bank statement PDFs to Tally ERP 9 / Tally Prime XML",
-    version="1.0.0",
+    version="1.1.0",
     lifespan=lifespan,
 )
 
@@ -70,7 +70,7 @@ class LedgerUpdateRequest(BaseModel):
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "version": "1.0.0"}
+    return {"status": "ok", "version": "1.1.0"}
 
 
 @app.get("/banks")

@@ -11,7 +11,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 - Axis Bank statement parser (`app/pipeline/parsers/axis.py`)
 - Kotak Mahindra Bank statement parser (`app/pipeline/parsers/kotak.py`)
+- Punjab National Bank (PNB) parser (`app/pipeline/parsers/pnb.py`)
+- Bank of Baroda (BOB) parser (`app/pipeline/parsers/bob.py`)
+- `GET /banks` endpoint listing all supported deterministic parsers
+- `GET /ledgers` endpoint returning canonical Tally ledger list
+- `GET /jobs` endpoint listing all in-memory processing jobs
+- `DELETE /jobs/{job_id}` endpoint for job cleanup
+- `app/utils/tally_ledgers.py` — single source of truth for 38 Tally ledger names
+- `app/utils/xml_validator.py` — structural validation of generated Tally XML
+- XML validation wired into `GET /export/{job_id}` before file is returned
+- Dockerfile and docker-compose.yml for containerised deployment
+- GitHub Actions CI workflow (`.github/workflows/ci.yml`)
 - CONTRIBUTING.md with parser extension guide
+- CHANGELOG.md
+
+### Changed
+- `app/classifier.py` now imports ledger list from `app/utils/tally_ledgers.py`
+- Streamlit frontend fetches ledger list and bank list dynamically from API
+- `/banks` endpoint updated to include all 7 supported banks
 
 ---
 
