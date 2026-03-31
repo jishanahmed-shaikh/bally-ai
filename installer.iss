@@ -31,9 +31,6 @@ WizardStyle=modern
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 UninstallDisplayIcon={app}\{#AppExeName}
-SetupIconFile=assets\icon.ico
-WizardImageFile=assets\wizard.bmp
-WizardSmallImageFile=assets\wizard_small.bmp
 MinVersion=10.0
 ArchitecturesInstallIn64BitMode=x64
 

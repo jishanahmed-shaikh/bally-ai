@@ -30,16 +30,9 @@ jobs:
           $binPath = (Get-ChildItem -Path poppler_extracted -Recurse -Filter "pdftoppm.exe" | Select-Object -First 1).DirectoryName
           echo "POPPLER_PATH=$binPath" >> $env:GITHUB_ENV
 
-      - name: Create assets folder (placeholder icon)
+      - name: Create assets folder placeholder
         shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path assets
-          # Create a minimal valid ICO file if none exists
-          if (-not (Test-Path "assets/icon.ico")) {
-            # Copy a system icon as placeholder
-            Copy-Item "$env:SystemRoot\System32\shell32.dll" -Destination "assets\shell32.dll" -ErrorAction SilentlyContinue
-            Write-Host "No icon.ico found - installer will use default icon"
-          }
+        run: New-Item -ItemType Directory -Force -Path assets | Out-Null
 
       - name: Build PyInstaller bundle
         shell: pwsh

@@ -99,7 +99,7 @@ exe = EXE(
     strip=False,
     upx=True,
     console=False,       # No black console window
-    icon="assets/icon.ico" if Path("assets/icon.ico").exists() else None,
+    icon=None,  # Add assets/icon.ico here when you have a custom icon
 )
 
 coll = COLLECT(
