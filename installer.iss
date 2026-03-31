@@ -32,7 +32,7 @@ PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 UninstallDisplayIcon={app}\{#AppExeName}
 MinVersion=10.0
-ArchitecturesInstallIn64BitMode=x64
+ArchitecturesInstallIn64BitMode=x64compatible
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -60,7 +60,7 @@ Filename: "{app}\{#AppExeName}"; Description: "Launch {#AppName}"; Flags: nowait
 
 [UninstallRun]
 ; Kill running processes on uninstall
-Filename: "taskkill"; Parameters: "/F /IM {#AppExeName}"; Flags: runhidden
+Filename: "taskkill"; Parameters: "/F /IM {#AppExeName}"; Flags: runhidden; RunOnceId: "KillBallyAI"
 
 [Code]
 // Show a custom "Welcome" page explaining the API key requirement
