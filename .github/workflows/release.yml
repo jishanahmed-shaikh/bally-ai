@@ -1,0 +1,78 @@
+name: Build Windows Installer
+
+# Triggers on version tags like v1.1.0
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build-installer:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt pyinstaller pystray pillow
+
+      - name: Download and extract Poppler for Windows
+        shell: pwsh
+        run: |
+          $url = "https://github.com/oschwartz10612/poppler-windows/releases/download/v24.08.0-0/Release-24.08.0-0.zip"
+          Invoke-WebRequest -Uri $url -OutFile poppler.zip
+          Expand-Archive -Path poppler.zip -DestinationPath poppler_extracted
+          $binPath = (Get-ChildItem -Path poppler_extracted -Recurse -Filter "pdftoppm.exe" | Select-Object -First 1).DirectoryName
+          echo "POPPLER_PATH=$binPath" >> $env:GITHUB_ENV
+
+      - name: Create assets folder (placeholder icon)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path assets
+          # Create a minimal valid ICO file if none exists
+          if (-not (Test-Path "assets/icon.ico")) {
+            # Copy a system icon as placeholder
+            Copy-Item "$env:SystemRoot\System32\shell32.dll" -Destination "assets\shell32.dll" -ErrorAction SilentlyContinue
+            Write-Host "No icon.ico found - installer will use default icon"
+          }
+
+      - name: Build PyInstaller bundle
+        shell: pwsh
+        env:
+          POPPLER_PATH: ${{ env.POPPLER_PATH }}
+        run: pyinstaller build.spec --noconfirm
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          choco install innosetup --yes --no-progress
+
+      - name: Build installer with Inno Setup
+        shell: pwsh
+        run: |
+          $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          & $iscc installer.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Upload installer as release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Output/BallyAI-Setup.exe
+          body: |
+            ## Bally AI ${{ github.ref_name }}
+
+            ### Installation
+            1. Download `BallyAI-Setup.exe` below
+            2. Run the installer (Next → Next → Finish)
+            3. On first launch, enter your free [Groq API key](https://console.groq.com)
+            4. Your browser opens automatically — start converting bank statements!
+
+            ### Supported banks
+            HDFC · ICICI · SBI · Axis · Kotak · PNB · BOB · (any other bank via AI fallback)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

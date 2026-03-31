@@ -1,40 +1,95 @@
-# Building the Windows .exe
+# Building the Windows Installer
 
-## Prerequisites
+## What gets produced
 
-```bash
-pip install pyinstaller
+```
+BallyAI-Setup.exe  (~150-250MB)
 ```
 
-Also make sure poppler is installed and on PATH (needed for pdfplumber):
-- Download from https://github.com/oschwartz10612/poppler-windows/releases
-- Extract and add the `bin/` folder to your system PATH
+A standard Windows installer. Non-tech users:
+1. Double-click `BallyAI-Setup.exe` → Next → Next → Finish
+2. First launch → popup asks for Groq API key
+3. Browser opens automatically at `http://localhost:8501`
+4. System tray icon to open app, change API key, or quit
 
-## Build
+---
+
+## Option A — Automatic (GitHub Actions)
+
+Push a version tag and the installer is built and attached to a GitHub Release automatically:
 
 ```bash
-pyinstaller build.spec
+git tag v1.1.0
+git push origin v1.1.0
 ```
 
-Output will be in `dist/BallyAI/` — a folder containing `BallyAI.exe` and all dependencies.
+The workflow (`.github/workflows/release.yml`) will:
+- Build the PyInstaller bundle on `windows-latest`
+- Download and bundle Poppler binaries
+- Compile the Inno Setup installer
+- Attach `BallyAI-Setup.exe` to the GitHub Release
 
-## Distribute
+---
 
-Zip the entire `dist/BallyAI/` folder and share it. The user:
-1. Extracts the zip
-2. Double-clicks `BallyAI.exe`
-3. On first run, a dialog asks for their Groq API key
-4. The key is saved to `%APPDATA%\bally-ai\config.json`
-5. Browser opens automatically at `http://localhost:8501`
+## Option B — Build locally on Windows
 
-## API Key storage
+### 1. Install build tools
 
-The key is stored in `%APPDATA%\bally-ai\config.json` on the user's machine.
-To change the key, the user can delete that file and re-run the app.
+```bash
+pip install pyinstaller pystray pillow
+```
 
-## Notes
+Install [Inno Setup 6](https://jrsoftware.org/isinfo.php) (free).
 
-- The .exe bundle will be ~200-400MB due to Python + all ML dependencies
-- Streamlit is launched as a subprocess from within the bundle
-- poppler binaries must be bundled separately or pre-installed on the target machine
-- For a cleaner install experience, consider wrapping the dist/ folder with Inno Setup
+### 2. Download Poppler for Windows
+
+Download from: https://github.com/oschwartz10612/poppler-windows/releases
+
+Extract it, then set the environment variable:
+
+```powershell
+$env:POPPLER_PATH = "C:\tools\poppler-24.08.0\Library\bin"
+```
+
+### 3. (Optional) Add your app icon
+
+Place a 256x256 `.ico` file at `assets/icon.ico`.
+Place a 164x314 `.bmp` at `assets/wizard.bmp` (installer sidebar image).
+Place a 55x58 `.bmp` at `assets/wizard_small.bmp` (installer top-right image).
+
+### 4. Build the PyInstaller bundle
+
+```bash
+pyinstaller build.spec --noconfirm
+```
+
+Output: `dist/BallyAI/` folder (~150MB)
+
+### 5. Build the installer
+
+```bash
+"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
+```
+
+Output: `Output/BallyAI-Setup.exe`
+
+---
+
+## How the API key works for end users
+
+- First launch: a dialog asks for the Groq API key
+- Key is saved to `%APPDATA%\bally-ai\config.json` on their machine
+- Never sent anywhere except directly to Groq's API
+- To change the key: right-click the system tray icon → "Change API Key"
+- To reset: delete `%APPDATA%\bally-ai\config.json` and relaunch
+
+---
+
+## Distributing
+
+Share `Output/BallyAI-Setup.exe` directly, or upload it to:
+- GitHub Releases (automatic via the release workflow)
+- Google Drive / Dropbox
+- Any file sharing service
+
+The installer is self-contained — no Python, no dependencies, no technical knowledge required.
