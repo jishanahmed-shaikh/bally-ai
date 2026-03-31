@@ -1,4 +1,4 @@
-# 🏦 Bank Statement → Tally XML Converter
+# 🏦 Bally AI — Bank Statement → Tally XML Converter
 
 > Convert Indian bank statement PDFs into Tally ERP 9 / Tally Prime-compatible XML voucher files — automatically.
 
@@ -6,9 +6,23 @@
 
 ---
 
+## Download (Windows)
+
+> The easiest way to use Bally AI — no Python, no terminal, no setup.
+
+1. Go to [Releases](https://github.com/jishanahmed-shaikh/bally-ai/releases/latest)
+2. Download `BallyAI-Setup.exe`
+3. Run the installer → Next → Next → Finish
+4. On first launch, enter your free [Groq API key](https://console.groq.com)
+5. Your browser opens automatically — start converting
+
+The installer is self-contained (~150-250MB). No Python or dependencies needed.
+
+---
+
 ## What it does
 
-Upload a PDF bank statement, review AI-suggested ledger assignments in an editable table, and download a ready-to-import Tally XML file.
+Upload a PDF bank statement → AI extracts all transactions → suggests Tally ledger accounts → you review and correct in an editable table → download a ready-to-import Tally XML file.
 
 The pipeline:
 1. Detects the bank from the PDF and routes to a deterministic pdfplumber parser
@@ -45,73 +59,117 @@ The pipeline:
 | XML generation | `xml.etree.ElementTree` |
 | Testing | pytest + Hypothesis (property-based) |
 | Containerisation | Docker + docker-compose |
+| Windows installer | PyInstaller + Inno Setup |
 
 ---
 
-## Setup
+## Running Locally (Developers)
 
 ### Prerequisites
 
 - Python 3.11+
-- A Groq API key — get one free at https://console.groq.com
+- A free Groq API key from https://console.groq.com
 
-### Local setup
+### Setup
 
 ```bash
-# 1. Clone the repo
+# Clone
 git clone https://github.com/jishanahmed-shaikh/bally-ai.git
 cd bally-ai
 
-# 2. Create and activate a virtual environment
+# Virtual environment
 python -m venv .venv
+.venv\Scripts\activate        # Windows
+source .venv/bin/activate     # macOS / Linux
 
-# Windows
-.venv\Scripts\activate
-# macOS / Linux
-source .venv/bin/activate
-
-# 3. Install dependencies
+# Install dependencies
 pip install -r requirements.txt
 
-# 4. Configure environment variables
+# Configure
 cp .env.example .env
-# Open .env and set your GROQ_API_KEY
+# Edit .env and set GROQ_API_KEY=your_key_here
 ```
 
----
-
-## Running
-
-### Local (two terminals)
+### Run
 
 ```bash
 # Terminal 1 — FastAPI backend
 uvicorn app.main:app --reload
-# API available at http://localhost:8000
-# Interactive docs at http://localhost:8000/docs
+# API at http://localhost:8000
+# Docs at http://localhost:8000/docs
 
 # Terminal 2 — Streamlit frontend
 streamlit run frontend/app.py
-# UI available at http://localhost:8501
+# UI at http://localhost:8501
 ```
 
 ### Docker
 
 ```bash
-# Build and start both services
-docker-compose up --build
+# Copy and fill in your API key first
+cp .env.example .env
 
-# Stop
-docker-compose down
+docker-compose up --build
+# API at http://localhost:8000
+# UI  at http://localhost:8501
 ```
 
 ---
 
-## Usage
+## Building the Windows Installer
 
-1. **Upload** — open `http://localhost:8501`, enter your bank ledger name (e.g. `HDFC Bank`), and upload a PDF bank statement
-2. **Review** — inspect the extracted transactions table; correct any AI-suggested ledger assignments inline
-3. **Download** — click "Generate & Download Tally XML" to get the import file, then import it into Tally ERP 9 or Tally Prime via `Gateway of Tally → Import Data → Vouchers`
+### Automatic (recommended) — GitHub Release
+
+Push a version tag and the installer is built and published automatically:
+
+```bash
+git tag v1.1.0
+git push origin v1.1.0
+```
+
+GitHub Actions (`.github/workflows/release.yml`) will:
+- Build the PyInstaller bundle on `windows-latest`
+- Download and bundle Poppler binaries automatically
+- Compile the Inno Setup installer
+- Attach `BallyAI-Setup.exe` to the GitHub Release
+
+The release will appear at:
+`https://github.com/jishanahmed-shaikh/bally-ai/releases`
+
+### Manual (local build)
+
+```bash
+# Install build tools
+pip install pyinstaller pystray pillow
+
+# Download Poppler for Windows from:
+# https://github.com/oschwartz10612/poppler-windows/releases
+# Then set the path:
+$env:POPPLER_PATH = "C:\tools\poppler\bin"   # PowerShell
+# or
+set POPPLER_PATH=C:\tools\poppler\bin         # CMD
+
+# Build PyInstaller bundle
+pyinstaller build.spec --noconfirm
+
+# Install Inno Setup 6 from https://jrsoftware.org/isinfo.php
+# Then compile the installer:
+"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
+
+# Output: Output/BallyAI-Setup.exe
+```
+
+See [BUILD.md](BUILD.md) for full details.
+
+---
+
+## How the API Key Works (End Users)
+
+- First launch shows a dialog asking for the Groq API key
+- Key is saved to `%APPDATA%\bally-ai\config.json` on their machine
+- Never shared — goes directly to Groq's API only
+- To change: right-click the system tray icon → **Change API Key**
+- To reset: delete `%APPDATA%\bally-ai\config.json` and relaunch
 
 ---
 
@@ -119,32 +177,25 @@ docker-compose down
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/health` | Health check — returns version and status |
-| `GET` | `/banks` | List all supported bank parsers |
-| `GET` | `/ledgers` | List all available Tally ledger names |
-| `GET` | `/jobs` | List all in-memory processing jobs |
-| `POST` | `/upload` | Upload and validate a PDF (returns `job_id`) |
-| `POST` | `/process/{job_id}` | Run extraction + classification pipeline |
+| `GET` | `/health` | Health check |
+| `GET` | `/banks` | List supported bank parsers |
+| `GET` | `/ledgers` | List available Tally ledger names |
+| `GET` | `/jobs` | List all processing jobs |
+| `POST` | `/upload` | Upload and validate a PDF |
+| `POST` | `/process/{job_id}` | Run extraction + classification |
 | `GET` | `/transactions/{job_id}` | Get transactions with ledger suggestions |
-| `PATCH` | `/transactions/{job_id}/{tx_id}` | Update ledger assignment for a transaction |
-| `GET` | `/export/{job_id}` | Generate and download Tally XML |
-| `DELETE` | `/jobs/{job_id}` | Delete a job and free memory |
+| `PATCH` | `/transactions/{job_id}/{tx_id}` | Update a ledger assignment |
+| `GET` | `/export/{job_id}` | Download Tally XML |
+| `DELETE` | `/jobs/{job_id}` | Delete a job |
 
-Interactive API docs: `http://localhost:8000/docs`
+Interactive docs: `http://localhost:8000/docs`
 
 ---
 
 ## Running Tests
 
 ```bash
-# All tests
 pytest --tb=short
-
-# Unit tests only
-pytest tests/test_models.py tests/test_xml_generator.py tests/test_parsers.py tests/test_api.py tests/test_xml_validator.py -v
-
-# Property-based tests (Hypothesis)
-pytest tests/test_properties.py -v
 ```
 
 ---
@@ -154,52 +205,42 @@ pytest tests/test_properties.py -v
 ```
 bally-ai/
 ├── app/
-│   ├── __init__.py
 │   ├── config.py               # Env var loading, ConfigurationError
 │   ├── main.py                 # FastAPI app — all 10 endpoints
-│   ├── models.py               # Pydantic v2 models (Transaction, ProcessingJob, TallyVoucher)
-│   ├── classifier.py           # Groq ledger classifier (batched, 38 ledger names)
-│   ├── xml_generator.py        # Tally XML builder (Payment / Receipt / Contra)
+│   ├── models.py               # Pydantic v2 models
+│   ├── classifier.py           # Groq ledger classifier
+│   ├── xml_generator.py        # Tally XML builder
 │   ├── pipeline/
-│   │   ├── __init__.py
-│   │   ├── graph.py            # LangGraph state machine (classify → extract / fallback)
+│   │   ├── graph.py            # LangGraph state machine
 │   │   └── parsers/
-│   │       ├── __init__.py
 │   │       ├── utils.py        # normalize_date(), clean_amount()
-│   │       ├── hdfc.py         # HDFC Bank parser
-│   │       ├── icici.py        # ICICI Bank parser
-│   │       ├── sbi.py          # SBI parser
-│   │       ├── axis.py         # Axis Bank parser
-│   │       ├── kotak.py        # Kotak Mahindra Bank parser
-│   │       ├── pnb.py          # Punjab National Bank parser
-│   │       └── bob.py          # Bank of Baroda parser
+│   │       ├── hdfc.py
+│   │       ├── icici.py
+│   │       ├── sbi.py
+│   │       ├── axis.py
+│   │       ├── kotak.py
+│   │       ├── pnb.py
+│   │       └── bob.py
 │   └── utils/
-│       ├── __init__.py
-│       ├── tally_ledgers.py    # Canonical list of 38 Tally ledger names
-│       └── xml_validator.py    # Structural validation of generated Tally XML
+│       ├── tally_ledgers.py    # 38 canonical Tally ledger names
+│       └── xml_validator.py    # Structural XML validation
 ├── frontend/
 │   └── app.py                  # Streamlit 3-step UI
-├── tests/
-│   ├── __init__.py
-│   ├── fixtures/               # Sample PDF fixtures for parser tests
-│   ├── test_models.py          # Pydantic model unit tests
-│   ├── test_xml_generator.py   # XML generator unit tests
-│   ├── test_xml_validator.py   # XML validator unit tests
-│   ├── test_parsers.py         # Parser unit tests (mocked pdfplumber)
-│   ├── test_api.py             # FastAPI endpoint tests
-│   └── test_properties.py      # Hypothesis property-based tests (12 properties)
+├── tests/                      # pytest + Hypothesis tests
 ├── .github/
 │   └── workflows/
-│       └── ci.yml              # GitHub Actions CI
-├── .env.example                # Environment variable template
-├── .gitignore
-├── CHANGELOG.md
-├── CONTRIBUTING.md
+│       ├── ci.yml              # Run tests on every push
+│       └── release.yml         # Build installer on version tags
+├── launcher.py                 # Windows app launcher (tray icon)
+├── build.spec                  # PyInstaller config
+├── installer.iss               # Inno Setup installer script
 ├── Dockerfile
+├── Dockerfile.frontend
 ├── docker-compose.yml
-├── pytest.ini
-├── requirements.txt
-└── README.md
+├── BUILD.md                    # Full build instructions
+├── CONTRIBUTING.md
+├── CHANGELOG.md
+└── requirements.txt
 ```
 
 ---
@@ -208,21 +249,14 @@ bally-ai/
 
 | Variable | Required | Description |
 |---|---|---|
-| `GROQ_API_KEY` | Yes | Your Groq API key from https://console.groq.com |
+| `GROQ_API_KEY` | Yes | Free key from https://console.groq.com |
 | `FASTAPI_URL` | No | Backend URL for Streamlit (default: `http://localhost:8000`) |
-
-Copy `.env.example` to `.env` and fill in your values.
 
 ---
 
-## Adding a New Bank Parser
+## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide. In short:
-
-1. Create `app/pipeline/parsers/<bank>.py` with a `parse(pdf_path) -> list[Transaction]` function
-2. Add detection keywords to `BANK_KEYWORDS` in `app/pipeline/graph.py`
-3. Add a dispatch branch in `deterministic_extract()` in `app/pipeline/graph.py`
-4. Add the bank to the `/banks` endpoint in `app/main.py`
+See [CONTRIBUTING.md](CONTRIBUTING.md) — adding a new bank parser takes about 10 minutes.
 
 ---
 
