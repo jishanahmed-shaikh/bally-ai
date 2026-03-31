@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies for pdfplumber
+# System deps for pdfplumber (poppler)
 RUN apt-get update && apt-get install -y \
     libpoppler-cpp-dev \
     poppler-utils \
@@ -11,7 +11,9 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+# Copy source — .env is excluded via .dockerignore
+COPY app/ ./app/
+COPY frontend/ ./frontend/
 
 EXPOSE 8000
 
