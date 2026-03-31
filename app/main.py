@@ -26,6 +26,7 @@ from app.classifier import classify_transactions
 from app.xml_generator import generate_tally_xml
 from app.config import get_config, ConfigurationError
 from app.utils.tally_ledgers import get_ledger_list
+from app.utils.xml_validator import validate_tally_xml
 
 # In-memory job store
 jobs: dict[str, ProcessingJob] = {}
@@ -306,6 +307,14 @@ def export_tally_xml(job_id: str):
         )
 
     xml_content = generate_tally_xml(job.transactions, job.bank_ledger_name)
+
+    # Validate before returning
+    validation = validate_tally_xml(xml_content)
+    if not validation:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Generated XML failed validation: {'; '.join(validation.errors)}"
+        )
 
     return FastAPIResponse(
         content=xml_content,
