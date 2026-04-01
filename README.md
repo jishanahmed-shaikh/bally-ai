@@ -67,8 +67,9 @@ The pipeline:
 
 ### Prerequisites
 
-- Python 3.11+
-- A free Groq API key from https://console.groq.com
+- Python 3.11+ [Download from here](https://www.python.org/ftp/python/3.12.9/python-3.12.9-amd64.exe)
+- Git [Download from here](https://github.com/git-for-windows/git/releases/download/v2.53.0.windows.2/Git-2.53.0.2-64-bit.exe)
+- A free Groq API key from [GROQ](https://console.groq.com)
 
 ### Setup
 
