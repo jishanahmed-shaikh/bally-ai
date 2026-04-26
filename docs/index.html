@@ -116,8 +116,14 @@
     <a href="#install">Install</a>
     <a href="https://github.com/jishanahmed-shaikh/bally-ai" target="_blank">GitHub</a>
   </div>
-  <a class="nav-cta" href="https://github.com/jishanahmed-shaikh/bally-ai/releases/latest" target="_blank">Download</a>
+  <a class="nav-cta" href="#install" style="background:#f59e0b">Run via Code</a>
 </nav>
+
+<!-- Warning Banner -->
+<div style="background:rgba(245,158,11,.1);border-bottom:1px solid rgba(245,158,11,.3);padding:.75rem 1.5rem;text-align:center;font-size:.8rem;color:#fbbf24;display:flex;align-items:center;justify-content:center;gap:.6rem;flex-wrap:wrap">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+  <span><strong>Windows Installer Notice:</strong> The <code style="font-family:var(--mono);font-size:.78em;background:rgba(245,158,11,.15);padding:.1rem .3rem;border-radius:3px">BallyAI-Setup.exe</code> is currently experiencing issues. Please use the <a href="#install" style="color:#fbbf24;text-decoration:underline">local dev or Docker setup</a> instead. We are actively working on a fix.</span>
+</div>
 
 <!-- Hero -->
 <section class="hero">
@@ -126,9 +132,13 @@
   <h1>Bank Statement PDF<br>to <span>Tally XML</span> in seconds</h1>
   <p class="hero-sub">Upload any Indian bank statement. AI extracts every transaction, suggests Tally ledger accounts, and exports a ready-to-import XML file.</p>
   <div class="hero-actions">
-    <a class="btn btn-primary" href="https://github.com/jishanahmed-shaikh/bally-ai/releases/latest" target="_blank">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      Download for Windows
+    <a class="btn btn-ghost" href="https://github.com/jishanahmed-shaikh/bally-ai/releases/latest" target="_blank" style="opacity:.45;cursor:not-allowed;pointer-events:none;border-color:#f59e0b;color:#f59e0b" title="Installer currently has issues — use Docker or local dev">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Installer Temporarily Unavailable
+    </a>
+    <a class="btn btn-primary" href="#install" >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      Run via Code
     </a>
     <a class="btn btn-ghost" href="https://github.com/jishanahmed-shaikh/bally-ai" target="_blank">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
@@ -258,17 +268,19 @@
   <h2 class="section-title">Two ways to run Bally AI</h2>
   <p class="section-sub">Windows installer for end users. Docker or local Python for developers.</p>
   <div class="install-grid">
-    <div class="install-card">
-      <div class="install-head">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-        Windows Installer
+    <div class="install-card" style="border-color:rgba(245,158,11,.4)">
+      <div class="install-head" style="background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.3);color:#fbbf24">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Windows Installer (Issues Reported)
       </div>
       <div class="install-body">
-1. Download <span class="t-y">BallyAI-Setup.exe</span> from Releases
-2. Run installer, click Next, Next, Finish
-3. Enter your free <span class="t-b">Groq API key</span> on first launch
-4. Browser opens automatically
-<span class="t-g">No Python. No terminal. No setup.</span>
+<span style="color:#f87171">The installer is currently experiencing issues.</span>
+<span style="color:#f87171">Please do not download it at this time.</span>
+
+We are actively investigating and working on a fix.
+Follow <span class="t-b">GitHub Issues</span> for updates.
+
+<span class="t-m">Use Docker or local dev below instead.</span>
       </div>
     </div>
     <div class="install-card">

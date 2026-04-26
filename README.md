@@ -1,5 +1,8 @@
 # 🏦 Bally AI — Bank Statement → Tally XML Converter
 
+> [!WARNING]
+> **Windows Installer Issues:** The `BallyAI-Setup.exe` installer is currently experiencing issues and is not recommended for download. Please use the [local dev or Docker setup](#running-locally-developers) instead. We are actively investigating and working on a fix. Track progress in [GitHub Issues](https://github.com/jishanahmed-shaikh/bally-ai/issues).
+
 > Convert Indian bank statement PDFs into Tally ERP 9 / Tally Prime-compatible XML voucher files — automatically.
 
 **GitHub:** https://github.com/jishanahmed-shaikh/bally-ai
@@ -8,7 +11,10 @@
 
 ## Download (Windows)
 
-> The easiest way to use Bally AI — no Python, no terminal, no setup.
+> [!CAUTION]
+> The Windows installer is currently experiencing issues. **Do not download it at this time.** Use the [local dev setup](#running-locally-developers) or [Docker](#docker) instead while we work on a fix.
+
+~~The easiest way to use Bally AI — no Python, no terminal, no setup.~~
 
 1. Go to [Releases](https://github.com/jishanahmed-shaikh/bally-ai/releases/latest)
 2. Download `BallyAI-Setup.exe`
