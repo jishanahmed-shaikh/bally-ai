@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bally AI — Bank Statement to Tally XML Converter</title>
+  <meta name="description" content="Convert Indian bank statement PDFs into Tally ERP 9 / Tally Prime XML voucher files automatically using AI."/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0a0a0f;--surface:#111118;--surface2:#1a1a24;
+      --border:#2a2a3a;--text:#f0f0f8;--muted:#8888aa;
+      --accent:#6366f1;--accent2:#818cf8;--green:#22c55e;
+      --yellow:#f59e0b;--red:#ef4444;
+      --radius:10px;--mono:'JetBrains Mono',monospace
+    }
+    html{scroll-behavior:smooth}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
+
+    /* Nav */
+    nav{position:sticky;top:0;z-index:100;background:rgba(10,10,15,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 2rem;height:58px;display:flex;align-items:center;justify-content:space-between}
+    .nav-logo{font-family:var(--mono);font-weight:500;font-size:.95rem;color:var(--accent2);letter-spacing:.02em}
+    .nav-logo span{color:var(--muted)}
+    .nav-links{display:flex;gap:1.75rem;font-size:.82rem}
+    .nav-links a{color:var(--muted);text-decoration:none;transition:color .15s}.nav-links a:hover{color:var(--text)}
+    .nav-cta{padding:.4rem 1rem;background:var(--accent);color:#fff;border-radius:6px;font-size:.8rem;font-weight:500;text-decoration:none;transition:opacity .15s}.nav-cta:hover{opacity:.85}
+
+    /* Hero */
+    .hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6rem 1.5rem 4rem;position:relative;overflow:hidden}
+    .hero-glow{position:absolute;top:20%;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(99,102,241,.15) 0%,transparent 70%);pointer-events:none}
+    .hero-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.35rem .9rem;border:1px solid rgba(99,102,241,.4);border-radius:999px;font-size:.72rem;color:var(--accent2);margin-bottom:2rem;background:rgba(99,102,241,.08)}
+    .hero-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+    .hero h1{font-size:clamp(2.4rem,6vw,4rem);font-weight:700;letter-spacing:-.03em;line-height:1.1;margin-bottom:1.25rem;max-width:800px}
+    .hero h1 span{background:linear-gradient(135deg,var(--accent2),#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .hero-sub{font-size:1.05rem;color:var(--muted);max-width:560px;margin:0 auto 2.5rem;font-weight:300;line-height:1.7}
+    .hero-actions{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;margin-bottom:3.5rem}
+    .btn{padding:.65rem 1.4rem;border-radius:8px;font-size:.875rem;font-weight:500;text-decoration:none;transition:all .15s;display:inline-flex;align-items:center;gap:.5rem}
+    .btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent2)}
+    .btn-ghost{border:1px solid var(--border);color:var(--text)}.btn-ghost:hover{border-color:var(--accent);color:var(--accent2)}
+    .hero-terminal{max-width:560px;margin:0 auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;text-align:left}
+    .term-bar{background:var(--surface2);padding:.5rem 1rem;display:flex;align-items:center;gap:.4rem;border-bottom:1px solid var(--border)}
+    .tdot{width:10px;height:10px;border-radius:50%}
+    .term-body{padding:1.1rem 1.25rem;font-family:var(--mono);font-size:.75rem;line-height:2;color:#a0a0c0}
+    .t-g{color:#4ade80}.t-b{color:#818cf8}.t-y{color:#fbbf24}.t-m{color:#8888aa}
+
+    /* Steps */
+    .section{max-width:1100px;margin:0 auto;padding:5rem 1.5rem}
+    .section-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.12em;color:var(--accent2);margin-bottom:.75rem;font-family:var(--mono)}
+    .section-title{font-size:clamp(1.6rem,3vw,2.2rem);font-weight:700;letter-spacing:-.02em;margin-bottom:.75rem}
+    .section-sub{color:var(--muted);font-size:.95rem;max-width:520px;font-weight:300}
+    .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.25rem;margin-top:3rem}
+    .step{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;position:relative;transition:border-color .2s}.step:hover{border-color:var(--accent)}
+    .step-num{font-family:var(--mono);font-size:.7rem;color:var(--accent2);margin-bottom:.75rem;letter-spacing:.08em}
+    .step-icon{font-size:1.5rem;margin-bottom:.75rem}
+    .step-title{font-size:.95rem;font-weight:600;margin-bottom:.4rem}
+    .step-desc{font-size:.8rem;color:var(--muted);line-height:1.6}
+
+    /* Banks */
+    .banks-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.75rem;margin-top:2.5rem}
+    .bank-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;display:flex;align-items:center;gap:.75rem;font-size:.82rem;font-weight:500}
+    .bank-badge{font-size:.6rem;padding:.15rem .45rem;border-radius:4px;font-family:var(--mono);font-weight:600}
+    .badge-det{background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.25)}
+    .badge-llm{background:rgba(99,102,241,.12);color:var(--accent2);border:1px solid rgba(99,102,241,.25)}
+    .bank-icon{font-size:1.2rem}
+
+    /* Tech stack */
+    .stack-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-top:2.5rem}
+    .stack-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.1rem 1.25rem}
+    .stack-layer{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.35rem;font-family:var(--mono)}
+    .stack-tech{font-size:.88rem;font-weight:500;color:var(--text)}
+    .stack-tech span{color:var(--muted);font-weight:300;font-size:.8rem}
+
+    /* API table */
+    .api-table{width:100%;border-collapse:collapse;margin-top:2rem;font-size:.82rem}
+    .api-table th{text-align:left;padding:.65rem 1rem;background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;font-weight:500}
+    .api-table td{padding:.65rem 1rem;border:1px solid var(--border);background:var(--surface)}
+    .api-table tr:hover td{background:var(--surface2)}
+    .method{font-family:var(--mono);font-size:.72rem;padding:.15rem .45rem;border-radius:4px;font-weight:600}
+    .get{background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.25)}
+    .post{background:rgba(99,102,241,.12);color:var(--accent2);border:1px solid rgba(99,102,241,.25)}
+    .patch{background:rgba(245,158,11,.12);color:var(--yellow);border:1px solid rgba(245,158,11,.25)}
+    .delete{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.25)}
+    .endpoint{font-family:var(--mono);font-size:.78rem;color:var(--accent2)}
+
+    /* Install */
+    .install-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:2.5rem}
+    @media(max-width:640px){.install-grid{grid-template-columns:1fr}}
+    .install-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+    .install-head{background:var(--surface2);padding:.75rem 1.25rem;border-bottom:1px solid var(--border);font-size:.8rem;font-weight:600;display:flex;align-items:center;gap:.5rem}
+    .install-body{padding:1.25rem;font-family:var(--mono);font-size:.75rem;line-height:2;color:#a0a0c0}
+
+    /* Divider */
+    .divider{border:none;border-top:1px solid var(--border);margin:0}
+
+    /* Footer */
+    footer{border-top:1px solid var(--border);padding:2.5rem 1.5rem;text-align:center;font-size:.78rem;color:var(--muted)}
+    footer a{color:var(--muted);text-decoration:none}.footer a:hover{color:var(--text)}
+    .footer-links{display:flex;gap:1.5rem;justify-content:center;margin-top:.75rem;flex-wrap:wrap}
+
+    @media(max-width:640px){
+      .nav-links{display:none}
+      .hero h1{font-size:2rem}
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-logo">bally<span>-ai</span></span>
+  <div class="nav-links">
+    <a href="#how">How it works</a>
+    <a href="#banks">Banks</a>
+    <a href="#api">API</a>
+    <a href="#install">Install</a>
+    <a href="https://github.com/jishanahmed-shaikh/bally-ai" target="_blank">GitHub</a>
+  </div>
+  <a class="nav-cta" href="https://github.com/jishanahmed-shaikh/bally-ai/releases/latest" target="_blank">Download</a>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-badge"><div class="dot"></div> Free &amp; Open Source</div>
+  <h1>Bank Statement PDF<br>to <span>Tally XML</span> in seconds</h1>
+  <p class="hero-sub">Upload any Indian bank statement. AI extracts every transaction, suggests Tally ledger accounts, and exports a ready-to-import XML file.</p>
+  <div class="hero-actions">
+    <a class="btn btn-primary" href="https://github.com/jishanahmed-shaikh/bally-ai/releases/latest" target="_blank">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download for Windows
+    </a>
+    <a class="btn btn-ghost" href="https://github.com/jishanahmed-shaikh/bally-ai" target="_blank">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      View on GitHub
+    </a>
+  </div>
+  <div class="hero-terminal">
+    <div class="term-bar">
+      <div class="tdot" style="background:#f85149"></div>
+      <div class="tdot" style="background:#e3b341"></div>
+      <div class="tdot" style="background:#3fb950"></div>
+      <span style="margin-left:.5rem;font-family:var(--mono);font-size:.68rem;color:var(--muted)">bally-ai pipeline</span>
+    </div>
+    <div class="term-body">
+<span class="t-m">1.</span> <span class="t-b">PDF uploaded</span>  <span class="t-m">HDFC_Statement_Mar2026.pdf</span>
+<span class="t-m">2.</span> <span class="t-g">Bank detected</span>  <span class="t-m">HDFC Bank (deterministic parser)</span>
+<span class="t-m">3.</span> <span class="t-g">Extracted</span>      <span class="t-m">84 transactions</span>
+<span class="t-m">4.</span> <span class="t-b">Classifying</span>   <span class="t-m">ledger accounts via Groq LLM...</span>
+<span class="t-m">5.</span> <span class="t-g">Classified</span>     <span class="t-m">84/84 transactions</span>
+<span class="t-m">6.</span> <span class="t-g">XML exported</span>  <span class="t-y">HDFC_Mar2026_tally.xml</span>  <span class="t-g">ready to import</span>
+    </div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- How it works -->
+<section class="section" id="how">
+  <div class="section-label">How it works</div>
+  <h2 class="section-title">Four steps, zero manual entry</h2>
+  <p class="section-sub">The entire pipeline runs locally. Your bank data never leaves your machine.</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-icon">📄</div>
+      <div class="step-title">Upload PDF</div>
+      <div class="step-desc">Drop your bank statement PDF into the Streamlit UI. Supports all major Indian banks.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-icon">🤖</div>
+      <div class="step-title">AI Extraction</div>
+      <div class="step-desc">Deterministic pdfplumber parsers handle known banks. Groq LLM fallback handles everything else.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-icon">✏️</div>
+      <div class="step-title">Review &amp; Edit</div>
+      <div class="step-desc">Every transaction shows in an editable table. Correct any ledger assignment before export.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">04</div>
+      <div class="step-icon">📦</div>
+      <div class="step-title">Download XML</div>
+      <div class="step-desc">One click exports a standards-compliant Tally XML file ready to import into Tally ERP 9 or Tally Prime.</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- Banks -->
+<section class="section" id="banks">
+  <div class="section-label">Supported Banks</div>
+  <h2 class="section-title">8 banks supported out of the box</h2>
+  <p class="section-sub">Deterministic parsers for the most common Indian banks. Any other bank uses the LLM fallback automatically.</p>
+  <div class="banks-grid">
+    <div class="bank-card"><span class="bank-icon">🏦</span><span style="flex:1">HDFC Bank</span><span class="bank-badge badge-det">Deterministic</span></div>
+    <div class="bank-card"><span class="bank-icon">🏦</span><span style="flex:1">ICICI Bank</span><span class="bank-badge badge-det">Deterministic</span></div>
+    <div class="bank-card"><span class="bank-icon">🏦</span><span style="flex:1">State Bank of India</span><span class="bank-badge badge-det">Deterministic</span></div>
+    <div class="bank-card"><span class="bank-icon">🏦</span><span style="flex:1">Axis Bank</span><span class="bank-badge badge-det">Deterministic</span></div>
+    <div class="bank-card"><span class="bank-icon">🏦</span><span style="flex:1">Kotak Mahindra</span><span class="bank-badge badge-det">Deterministic</span></div>
+    <div class="bank-card"><span class="bank-icon">🏦</span><span style="flex:1">Punjab National Bank</span><span class="bank-badge badge-det">Deterministic</span></div>
+    <div class="bank-card"><span class="bank-icon">🏦</span><span style="flex:1">Bank of Baroda</span><span class="bank-badge badge-det">Deterministic</span></div>
+    <div class="bank-card"><span class="bank-icon">✨</span><span style="flex:1">Any other bank</span><span class="bank-badge badge-llm">LLM Fallback</span></div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- Tech Stack -->
+<section class="section" id="stack">
+  <div class="section-label">Tech Stack</div>
+  <h2 class="section-title">Built on solid foundations</h2>
+  <p class="section-sub">Production-grade tools, not hacked together scripts.</p>
+  <div class="stack-grid">
+    <div class="stack-card"><div class="stack-layer">Backend API</div><div class="stack-tech">FastAPI <span>0.111</span></div></div>
+    <div class="stack-card"><div class="stack-layer">Extraction Pipeline</div><div class="stack-tech">LangGraph <span>+ pdfplumber</span></div></div>
+    <div class="stack-card"><div class="stack-layer">LLM</div><div class="stack-tech">Groq <span>Llama 4 Scout 17B</span></div></div>
+    <div class="stack-card"><div class="stack-layer">Frontend</div><div class="stack-tech">Streamlit</div></div>
+    <div class="stack-card"><div class="stack-layer">Data Validation</div><div class="stack-tech">Pydantic <span>v2</span></div></div>
+    <div class="stack-card"><div class="stack-layer">Testing</div><div class="stack-tech">pytest <span>+ Hypothesis</span></div></div>
+    <div class="stack-card"><div class="stack-layer">Containerisation</div><div class="stack-tech">Docker <span>+ Compose</span></div></div>
+    <div class="stack-card"><div class="stack-layer">Windows Installer</div><div class="stack-tech">PyInstaller <span>+ Inno Setup</span></div></div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- API -->
+<section class="section" id="api">
+  <div class="section-label">REST API</div>
+  <h2 class="section-title">10 endpoints, fully documented</h2>
+  <p class="section-sub">Run the backend and open <code style="font-family:var(--mono);font-size:.85em;color:var(--accent2)">http://localhost:8000/docs</code> for interactive Swagger UI.</p>
+  <table class="api-table">
+    <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><span class="method get">GET</span></td><td class="endpoint">/health</td><td>Health check</td></tr>
+      <tr><td><span class="method get">GET</span></td><td class="endpoint">/banks</td><td>List supported bank parsers</td></tr>
+      <tr><td><span class="method get">GET</span></td><td class="endpoint">/ledgers</td><td>List available Tally ledger names</td></tr>
+      <tr><td><span class="method get">GET</span></td><td class="endpoint">/jobs</td><td>List all processing jobs</td></tr>
+      <tr><td><span class="method post">POST</span></td><td class="endpoint">/upload</td><td>Upload and validate a PDF</td></tr>
+      <tr><td><span class="method post">POST</span></td><td class="endpoint">/process/{job_id}</td><td>Run extraction and classification</td></tr>
+      <tr><td><span class="method get">GET</span></td><td class="endpoint">/transactions/{job_id}</td><td>Get transactions with ledger suggestions</td></tr>
+      <tr><td><span class="method patch">PATCH</span></td><td class="endpoint">/transactions/{job_id}/{tx_id}</td><td>Update a ledger assignment</td></tr>
+      <tr><td><span class="method get">GET</span></td><td class="endpoint">/export/{job_id}</td><td>Download Tally XML</td></tr>
+      <tr><td><span class="method delete">DELETE</span></td><td class="endpoint">/jobs/{job_id}</td><td>Delete a job</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<hr class="divider"/>
+
+<!-- Install -->
+<section class="section" id="install">
+  <div class="section-label">Get Started</div>
+  <h2 class="section-title">Two ways to run Bally AI</h2>
+  <p class="section-sub">Windows installer for end users. Docker or local Python for developers.</p>
+  <div class="install-grid">
+    <div class="install-card">
+      <div class="install-head">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Windows Installer
+      </div>
+      <div class="install-body">
+1. Download <span class="t-y">BallyAI-Setup.exe</span> from Releases
+2. Run installer, click Next, Next, Finish
+3. Enter your free <span class="t-b">Groq API key</span> on first launch
+4. Browser opens automatically
+<span class="t-g">No Python. No terminal. No setup.</span>
+      </div>
+    </div>
+    <div class="install-card">
+      <div class="install-head">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        Docker / Local Dev
+      </div>
+      <div class="install-body">
+<span class="t-m">$</span> git clone github.com/jishanahmed-shaikh/bally-ai
+<span class="t-m">$</span> cp .env.example .env  <span class="t-m"># add GROQ_API_KEY</span>
+<span class="t-m">$</span> docker-compose up --build
+<span class="t-g">API</span>  http://localhost:8000/docs
+<span class="t-g">UI</span>   http://localhost:8501
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<footer>
+  <p>Built by <a href="https://github.com/jishanahmed-shaikh" target="_blank">Jishanahmed AR Shaikh</a></p>
+  <div class="footer-links">
+    <a href="https://github.com/jishanahmed-shaikh/bally-ai" target="_blank">GitHub</a>
+    <a href="https://github.com/jishanahmed-shaikh/bally-ai/releases/latest" target="_blank">Releases</a>
+    <a href="https://github.com/jishanahmed-shaikh/bally-ai/blob/main/CONTRIBUTING.md" target="_blank">Contributing</a>
+    <a href="https://github.com/jishanahmed-shaikh/bally-ai/blob/main/CHANGELOG.md" target="_blank">Changelog</a>
+  </div>
+  <p style="margin-top:.75rem;font-size:.72rem">MIT License</p>
+</footer>
+
+</body>
+</html>
